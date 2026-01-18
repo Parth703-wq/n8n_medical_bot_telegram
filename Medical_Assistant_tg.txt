@@ -1,0 +1,539 @@
+{
+  "name": "Medical_Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -368,
+        -320
+      ],
+      "id": "9f1d7cb1-aaeb-4cfb-9efe-a94a51264f0e",
+      "name": "Telegram Trigger",
+      "webhookId": "274426df-d4f0-4bd0-ac18-07d29ffe762c",
+         
+        
+      
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{$json[\"message\"][\"voice\"] ? 2 : ($json[\"message\"][\"document\"] || $json[\"message\"][\"photo\"] ? 0 : 1)}}\n"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -176,
+        -320
+      ],
+      "id": "1410e52b-cf7d-4e1c-a538-0a85492de82b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a friendly and helpful AI medical assistant for regular people.\n\nInstructions:\n- Answer the user's health question in plain, simple English.\n- Whenever relevant, suggest specific over-the-counter (OTC) medicine names that are commonly available (e.g., paracetamol, acetaminophen, ibuprofen, loratadine, cetirizine, antacids, etc.), but never mention prescription-only drugs or antibiotics.\n- Always explain what the medicine is for (example: \"acetaminophen (Tylenol) can help reduce fever or pain\").\n- Include some safe and easy home remedies.\n- At the end, include this disclaimer: \"If symptoms get worse or you are worried, please see a doctor.\"\n- Add a short, friendly health tip at the end.\n\nUser's question: {{ $json[\"message\"][\"text\"] }}\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a helpful medical AI assistant. Answer the following medical question in two ways: 1. Using clear medical terminology for a professional. 2. In simple language for a non-expert. Suggest possible treatments (only over-the-counter or home remedies), always include a strong disclaimer to consult a real doctor, and give a health tip or FAQ if relevant. User's question: {{$json[\"message\"][\"text\"]}}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        64,
+        -256
+      ],
+      "id": "01ad1505-7bea-4dd1-ba0b-884e5e7eb014",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        384,
+        -128
+      ],
+      "id": "a34b81a3-062d-4c0c-8b15-6b67881431eb",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "ywWfq7IhZzYbe9bF",
+          "name": "OpenRouter account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        -176
+      ],
+      "id": "1885587c-6ec4-4e18-acd8-99d0318d810b",
+      "name": "Telegram",
+      "webhookId": "22295e5a-620a-4d98-963f-076982a43a0f",
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json[\"message\"][\"document\"][\"file_id\"] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        272,
+        -624
+      ],
+      "id": "ff37e3df-fb6e-42e7-b0bb-3e714e23813e",
+      "name": "Telegram1",
+      "webhookId": "d21295b6-1aac-4b14-acf9-6ca661003786",
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -384
+      ],
+      "id": "95785057-f465-4d97-a60f-34c341b50467",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a helpful AI medical assistant.\n\nA user has uploaded their medical report.\n\nInstructions:\n- Start with a simple summary of the report.\n- Use section headings like \"Summary of the Report\", \"Key Findings\", \"What You Can Do\", \"Important Disclaimer\", and \"Health Tip\" as plain text (no bold or special formatting).\n- For key findings, use simple bullet points with hyphens and line breaks.\n- For remedies, also use bullet points.\n- Write everything in clear, friendly, and simple language that anyone can understand.\n- Do not use any Markdown or bold formatting.\n- Always add an \"Important Disclaimer\" section at the end: \"Always consult your doctor for personalized advice.\"\n- End with a \"Health Tip\" section.\n\nHere is the report content:\n{{ $json[\"text\"] }}\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a helpful medical AI assistant. Answer the following medical question in two ways: 1. Using clear medical terminology for a professional. 2. In simple language for a non-expert. Suggest possible treatments (only over-the-counter or home remedies), always include a strong disclaimer to consult a real doctor, and give a health tip or FAQ if relevant. User's question: {{$json[\"message\"][\"text\"]}}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        512,
+        -560
+      ],
+      "id": "3aa6fb02-7d27-413d-8c05-fd97362dd9f0",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -336
+      ],
+      "id": "82ec3b67-9d5b-457d-bcce-6af5d3800c59",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "ywWfq7IhZzYbe9bF",
+          "name": "OpenRouter account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        -256
+      ],
+      "id": "0fd6a41b-b7ae-4149-9391-2f7d76ab4b53",
+      "name": "Telegram2",
+      "webhookId": "22295e5a-620a-4d98-963f-076982a43a0f",
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{$json[\"message\"][\"voice\"][\"file_id\"]}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        80
+      ],
+      "id": "64580d04-5bc8-4d0c-a0d2-9ecd87050257",
+      "name": "Telegram3",
+      "webhookId": "e3ab0309-1491-4eeb-97ab-cf400aaedd2a",
+      "credentials": {
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/speech-to-text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "PUT YOUR CREDENTIAL"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model_id",
+              "value": "scribe_v1"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        -80
+      ],
+      "id": "b64b4681-37ed-4f58-8d85-fc5cbc713478",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a helpful medical AI assistant. The user says: {{$json[\"text\"]}}\n\n- Answer their question in clear, simple  ENGLISH language ONLY\n.\n- If appropriate, suggest common over-the-counter (OTC) medicines (example: acetaminophen, ibuprofen, antihistamines, etc.) and explain what they do.\n- Give one or two safe home remedies if possible.\n- Always add: \"If you feel worse or have any concerns, please see a doctor.\"\n- End with a quick health tip relevant to their query.\ndo not use bold.",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "=You are a helpful medical AI assistant. The user says: {{$json[\"text\"]}}  - Answer their question in clear, simple language. - If appropriate, suggest common over-the-counter (OTC) medicines (example: acetaminophen, ibuprofen, antihistamines, etc.) and explain what they do. - Give one or two safe home remedies if possible. - Always add: \"If you feel worse or have any concerns, please see a doctor.\" - End with a quick health tip relevant to their query."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        288,
+        112
+      ],
+      "id": "3a411faa-138b-4e90-8eb2-f593dd243637",
+      "name": "Basic LLM Chain2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        480,
+        368
+      ],
+      "id": "2544d48f-bb00-41e8-85b5-1afa4a8771bd",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "ywWfq7IhZzYbe9bF",
+          "name": "OpenRouter account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAudio",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "binaryData": true,
+        "additionalFields": {
+          "fileName": "response.mp3"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        32
+      ],
+      "id": "3e465845-b386-4ddc-90da-c8bdad82bd8e",
+      "name": "Telegram4",
+      "webhookId": "22295e5a-620a-4d98-963f-076982a43a0f",
+     },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/9BWtsMINqrJLrRacOk9x",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "sk_835e3042aeeb4dad811385329a474646b3dde167017753b6"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": {{ JSON.stringify($json.text) }},\n  \"model_id\": \"eleven_monolingual_v1\",\n  \"voice_settings\": {\n    \"stability\": 0.5,\n    \"similarity_boost\": 0.75\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        768,
+        288
+      ],
+      "id": "0b1b67ba-c450-4eb0-87d8-3022ab31eda4",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "d444a3bf-8717-4c94-8a19-110e4b695f84",
+      "name": "Telegram5",
+      "webhookId": "6c576960-07f6-4888-99ff-a323adfe77a9",
+      "credentials": {
+        "telegramApi": {
+          "id": "t9NxSRTlKnvaAIrU",
+          "name": "Telegram account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Telegram4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram4": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d59f7d38-788e-4d1f-8007-8049025ae533",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ab7eac213ea17cbde8c7f702632f5c31ecb8c437076f8934518562c953c461be"
+  },
+  "id": "vIiU86LwyzPc9AHZ",
+  "tags": []
+}

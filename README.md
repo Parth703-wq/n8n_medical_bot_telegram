@@ -2,9 +2,6 @@
 Medical assistant Telegram bot built with n8n
 
 
-# n8n Medical Telegram Bot
-
-A medical assistant Telegram bot built using n8n.
 
 ## Live Demo
 https://t.me/medical_nidhi_bot
